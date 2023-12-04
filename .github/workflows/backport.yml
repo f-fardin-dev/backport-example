@@ -1,0 +1,22 @@
+name: Backport
+on:
+  pull_request_target:
+    types:
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backport:
+    name: Backport
+    runs-on: ubuntu-latest
+
+    if: >
+      github.event.pull_request.merged && github.event.action == 'closed'
+
+    steps:
+      - uses: tibdex/backport@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
