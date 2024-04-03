@@ -1,0 +1,45 @@
+name: Pull Request Chore
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  add-label-by-title:
+    name: Add Label By Title
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: Check title
+        id: check-title
+        run: |
+          regexx="DEV-(\w|\d)+"
+          if [[ "${{ github.event.pull_request.title }}" =~ $regexx ]]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+            label="bug"
+            echo "label=$label" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" == "Lokalise: Translations update" ]]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+            label="enhancement"
+            echo "label=$label" >> $GITHUB_OUTPUT
+          else
+            echo "title didn't match";
+          fi
+      - name: add label
+        uses: actions-ecosystem/action-add-labels@v1
+        if: steps.check-title.outputs.match == 'true'
+        with:
+          labels: |
+            ${{ steps.check-title.outputs.label }}
